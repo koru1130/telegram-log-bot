@@ -1,0 +1,24 @@
+{
+  "name": "log_bot",
+  "version": "1.0.0",
+  "description": "Just a telegram log bot",
+  "main": "bot.js",
+  "dependencies": {
+    "mongojs": "^2.4.0",
+    "request": "^2.75.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/koru1130/telegram-log-bot.git"
+  },
+  "author": "koru1130",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/koru1130/telegram-log-bot/issues"
+  },
+  "homepage": "https://github.com/koru1130/telegram-log-bot#readme"
+}
