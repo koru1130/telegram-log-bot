@@ -1,0 +1,5 @@
+{
+    "token" : "1234567890:C8763",
+    "dbConnectionString" : "username:password@localhost/mydb",
+    "consoleGroup" : -123456789
+}
