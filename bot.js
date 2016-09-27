@@ -133,7 +133,7 @@ bot.addCmd('search', (message, args) => {
             cbq.answer();
         });
     }
-});
+}, "搜尋訊息");
 
 function listView(message, args, iterator, processToText, whenClickNumber) {
 
