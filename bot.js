@@ -8,6 +8,7 @@ var db = require("./db");
 var DB = new db(config.dbConnectionString);
 
 bot.on('message', function(message) {
+
     if (message.chat.id == config.consoleGroup) {
         if (message.reply_to_message && message.text && message.reply_to_message.forward_from) {
             DB.findOrginalIdByFwdMsgId(message.reply_to_message.message_id, function(err, doc) {
@@ -51,8 +52,8 @@ bot.on('message', function(message) {
 
 
 bot.on('edited_message', function(message) {
-    if (message.chat.id != -151293492) {
-        bot.forwardMessage(-151293492, message.chat.id, message.message_id, {}, function(err, result) {
+    if (message.chat.id != config.consoleGroup) {
+        bot.forwardMessage(config.consoleGroup, message.chat.id, message.message_id, {}, function(err, result) {
             if (err) console.log(err);
             if (result) message.fwd_id = result.message_id;
             DB.saveMessage(message);
@@ -90,7 +91,7 @@ bot.addCmd('mh', function(message, args) {
             text = text || "Nothing";
             return text;
         }, function(i, messages, cbq) {
-            if (messages[i]) bot.forwardMessage(cbq.from.id, -151293492, messages[i].fwd_id);
+            if (messages[i]) bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
             cbq.answer();
         });
     }
@@ -110,13 +111,29 @@ bot.addCmd('wmr', (message, args) => {
                 text = text || "Nothing";
                 return text;
             }, function(i, messages, cbq) {
-                if (messages[i]) bot.forwardMessage(cbq.from.id, -151293492, messages[i].fwd_id);
+                if (messages[i]) bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
                 cbq.answer();
             });
         }
     });
 }, "查看該訊息回復了哪則訊息");
 
+bot.addCmd('search', (message, args) => {
+    if (args[1]) {
+        listView(message, args, DB.listFindMessage(args[1], 'i'), function(docs) {
+            var text = "";
+            docs.forEach(function(doc, index) {
+                text += (index + 1 + ". " + (doc.from.username || doc.from.first_name) + " : " + (doc.text || "[Not Text]") + "\n");
+
+            });
+            text = text || "Nothing";
+            return text;
+        }, function(i, messages, cbq) {
+            if (messages[i]) bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
+            cbq.answer();
+        });
+    }
+});
 
 function listView(message, args, iterator, processToText, whenClickNumber) {
 

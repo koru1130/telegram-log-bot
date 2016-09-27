@@ -32,8 +32,9 @@ DB.prototype.findHistory = function(msgid,chatid) {
     return this.listView(selector);
 };
 
-DB.prototype.findMessage = function() {
-
+DB.prototype.listFindMessage = function(pattern,options) {
+    var selector = {text:{$regex:pattern,$options:options}};
+    return this.listView(selector);
 };
 
 DB.prototype.findRepliedIdByMessageId = function(msgid,cb){
