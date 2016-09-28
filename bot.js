@@ -34,7 +34,7 @@ bot.on('message', function(message) {
                                 message.mention.push(message.text.slice(entity.offset, entity.offset + entity.length));
                                 break;
                             case 'text_mention':
-                                message.mention.push(entity.user.id);
+                                message.mention.push(entity.user.id.toString());
                                 break;
                             default:
                                 // code
@@ -42,7 +42,7 @@ bot.on('message', function(message) {
                     });
                 }
                 if (message.reply_to_message) {
-                    message.mention.push(message.reply_to_message.from.id);
+                    message.mention.push(message.reply_to_message.from.id.toString());
                 }
                 DB.saveMessage(message);
             }
