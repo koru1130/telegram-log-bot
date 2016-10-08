@@ -1,6 +1,7 @@
 var mongojs = require('mongojs');
+var config = require("./config");
 
-var db,dbMessages;
+var db, dbMessages;
 
 function DB(ConnectionString) {
     db = mongojs(ConnectionString);
@@ -14,35 +15,53 @@ DB.prototype.saveMessage = function(message) {
 
 DB.prototype.findMention = function(username, userid) {
     username = "@" + (username || "");
-    
+
     var selector = {
-                    $or: [{
-                        mention: username
-                    }, {
-                        mention: userid
-                    }]
-                };
+        $or: [{
+            mention: username
+        }, {
+            mention: userid
+        }],
+        "chat.type": {
+            $not: {
+                $eq: "private"
+            }
+        }
+    };
     return this.listView(selector);
 };
-DB.prototype.findHistory = function(msgid,chatid) {
+DB.prototype.findHistory = function(msgid, chatid) {
     var selector = {
-        message_id : msgid,
-        "chat.id" : chatid
+        message_id: msgid,
+        "chat.id": chatid
     };
     return this.listView(selector);
 };
 
-DB.prototype.listFindMessage = function(pattern,options) {
-    var selector = {text:{$regex:pattern,$options:options}};
+DB.prototype.listFindMessage = function(pattern, options) {
+    var selector = {
+        text: {
+            $regex: pattern,
+            $options: options
+        },
+        "chat.id": {
+            $nin: config.logIgnoreGroups
+        },
+        "chat.type": {
+            $not: {
+                $eq: "private"
+            }
+        }
+    };
     return this.listView(selector);
 };
 
-DB.prototype.findRepliedIdByMessageId = function(msgid,cb){
-  dbMessages.findOne({
-      message_id : msgid
-  },{
-      reply_to_message : 1
-  },cb);
+DB.prototype.findRepliedIdByMessageId = function(msgid, cb) {
+    dbMessages.findOne({
+        message_id: msgid
+    }, {
+        reply_to_message: 1
+    }, cb);
 };
 
 DB.prototype.findOrginalIdByFwdMsgId = function(id, cb) {
@@ -52,13 +71,15 @@ DB.prototype.findOrginalIdByFwdMsgId = function(id, cb) {
 };
 
 DB.prototype.listView = function(selector) {
-    
+
     var offsetTime = Math.floor(Date.now() / 1000);
-    selector.date = {$lt: offsetTime};
-                    
+    selector.date = {
+        $lt: offsetTime
+    };
+
     var messages = [];
     var offset = -5;
-    
+
     return {
         nextMessage: function(cb) {
             if (messages[offset]) {
@@ -83,7 +104,8 @@ DB.prototype.listView = function(selector) {
             }
         },
         previousMessage: function(cb) {
-            if (offset < 5) offset = 0; else offset -= 5;
+            if (offset < 5) offset = 0;
+            else offset -= 5;
             if (messages[offset]) {
                 cb(messages.slice(offset, offset + 5));
             }
