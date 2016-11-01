@@ -23,6 +23,7 @@ bot.on('message', function(message) {
         bot.forwardMessage(config.consoleGroup, message.chat.id, message.message_id, {}, function(err, result) {
             if (err) {
                 console.log(err);
+                DB.saveMessage(message);
             }
             else {
                 message.fwd_id = result.message_id;
