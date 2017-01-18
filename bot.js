@@ -11,7 +11,7 @@ bot.on('message', function(message) {
 
     if (message.chat.id == config.consoleGroup) {
         if (message.reply_to_message && message.text && message.reply_to_message.forward_from) {
-            DB.findOrginalIdByFwdMsgId(message.reply_to_message.message_id, function(err, doc) {
+            DB.findOriginalIdByFwdMsgId(message.reply_to_message.message_id, function(err, doc) {
                 if (err) console.log(err);
                 if (doc) bot.sendMessage(doc.chat.id, message.text, {
                     reply_to_message_id: doc.message_id

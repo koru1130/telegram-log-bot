@@ -64,7 +64,7 @@ DB.prototype.findRepliedIdByMessageId = function(msgid, cb) {
     }, cb);
 };
 
-DB.prototype.findOrginalIdByFwdMsgId = function(id, cb) {
+DB.prototype.findOriginalIdByFwdMsgId = function(id, cb) {
     dbMessages.findOne({
         fwd_id: id
     }, cb);
