@@ -63,7 +63,7 @@ bot.on('edited_message', function(message) {
 });
 
 bot.addCmd('wmmm', function(message, args) {
-    listView(message, args, DB.findMention(message.from.username, message.from.id), function(docs) {
+    listView(message, args, DB.findMention(message.from.username, message.from.id.toString()), function(docs) {
         var text = "";
         docs.forEach(function(doc, index) {
             text += (index + 1 + ". " + (doc.from.username || doc.from.first_name) + " : " + (doc.text || "[Not Text]") + "\n");
