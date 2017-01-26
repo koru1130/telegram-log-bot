@@ -90,7 +90,10 @@ DB.prototype.listView = function(selector) {
                 dbMessages.find(selector).sort({
                     date: -1
                 }).limit(100, function(err, docs) {
-                    if (err) console.log(err);
+                    if (err){
+                        console.log(err);
+                        return;
+                    }
                     if (docs[docs.length - 1]) {
                         offset += 5;
                         offsetTime = docs[docs.length - 1].date;
