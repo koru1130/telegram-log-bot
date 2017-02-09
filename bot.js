@@ -96,7 +96,7 @@ bot.addCmd('mh', function(message, args) {
             cbq.answer();
         });
     }
-}, "訊息歷史");
+}, "訊息歷史","reply要查看的訊息後 打 /mh");
 
 bot.addCmd('wmr', (message, args) => {
     if (message.reply_to_message) DB.findRepliedIdByMessageId(message.reply_to_message.message_id, function(err, doc) {
@@ -117,7 +117,7 @@ bot.addCmd('wmr', (message, args) => {
             });
         }
     });
-}, "查看該訊息回復了哪則訊息");
+}, "查看該訊息回復了哪則訊息","reply要查看的訊息後 打 /wmr");
 
 bot.addCmd('search', (message, args) => {
     if (args[1]) {
@@ -134,7 +134,7 @@ bot.addCmd('search', (message, args) => {
             cbq.answer();
         });
     }
-}, "搜尋訊息");
+}, "搜尋訊息","/search (regex)");
 
 function listView(message, args, iterator, processToText, whenClickNumber) {
 
@@ -179,7 +179,7 @@ function listView(message, args, iterator, processToText, whenClickNumber) {
                 catch (e) {
                     console.log(e);
                 }
-                if (err && (err.description == "PEER_ID_INVALID" || err.description == "Bot was blocked by the user")) {
+                if (err && (err.description == "Forbidden: bot can't initiate conversation with a user" || err.description == "Bot was blocked by the user")) {
                     message.replyMsg("您需要先私訊本機器人！ OwO", {
                         reply_markup: JSON.stringify({
                             inline_keyboard: [
