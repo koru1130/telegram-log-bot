@@ -71,10 +71,12 @@ bot.addCmd('wmmm', function(message, args) {
         text = text || "Nothing";
         return text;
     }, function(i, messages, cbq) {
-        if (messages[i]) bot.replyMessage(messages[i].chat.id, messages[i].message_id, (cbq.from.username ? "@" + cbq.from.username : cbq.from.first_name) + " ^", {
-            disable_notification: true
-        });
-        cbq.answer("請至 " + messages[i].chat.title + " 查看");
+        if (messages[i]) { 
+            bot.replyMessage(messages[i].chat.id, messages[i].message_id, (cbq.from.username ? "@" + cbq.from.username : cbq.from.first_name) + " ^", {
+                disable_notification: true
+            });
+            cbq.answer("請至 " + messages[i].chat.title + " 查看");
+        }        
     });
 }, "查看有哪些訊息提到我");
 
