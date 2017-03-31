@@ -38,7 +38,7 @@ DB.prototype.findHistory = function(msgid, chatid) {
     return this.listView(selector);
 };
 
-DB.prototype.listFindMessage = function(pattern, options) {
+DB.prototype.listFindMessage = function(pattern, options, chatId) {
     var selector = {
         text: {
             $regex: pattern,
@@ -53,6 +53,8 @@ DB.prototype.listFindMessage = function(pattern, options) {
             }
         }
     };
+    if (chatId) selector['chat.id'].$eq = chatId;
+
     return this.listView(selector);
 };
 
