@@ -71,12 +71,12 @@ bot.addCmd('wmmm', function(message, args) {
         text = text || "Nothing";
         return text;
     }, function(i, messages, cbq) {
-        if (messages[i]) { 
+        if (messages[i]) {
             bot.replyMessage(messages[i].chat.id, messages[i].message_id, (cbq.from.username ? "@" + cbq.from.username : cbq.from.first_name) + " ^", {
                 disable_notification: true
             });
             cbq.answer("請至 " + messages[i].chat.title + " 查看");
-        }        
+        }
     });
 }, "查看有哪些訊息提到我");
 
@@ -123,7 +123,18 @@ bot.addCmd('wmr', (message, args) => {
 
 bot.addCmd('search', (message, args) => {
     if (args[1]) {
-        listView(message, args, DB.listFindMessage(args[1], 'i'), function(docs) {
+        var pattern = args[0],
+            chatId  = message.chat.id;
+
+        if (args[1] == '-g') {
+            args.splice(0, 2);
+            pattern = args.join(' ');
+            chatId  = null;
+        }
+
+        if (message.chat.type == 'private') chatId = null;
+
+        listView(message, args, DB.listFindMessage(pattern, 'i', chatId), function(docs) {
             var text = "";
             docs.forEach(function(doc, index) {
                 text += (index + 1 + ". " + (doc.from.username || doc.from.first_name) + " : " + (doc.text || "[Not Text]") + "\n");
