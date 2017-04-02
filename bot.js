@@ -13,10 +13,16 @@ bot.on('message', function(message) {
         if (message.reply_to_message && message.text && message.reply_to_message.forward_from) {
             DB.findOriginalIdByFwdMsgId(message.reply_to_message.message_id, function(err, doc) {
                 if (err) console.log(err);
-                if (doc) bot.sendMessage(doc.chat.id, message.text, {
-                    reply_to_message_id: doc.message_id
-                });
+                if (message.text == "info") {
+                    message.replyMsg("```\n"+JSON.stringify(doc, null, 2)+"```",{parse_mode:"Markdown"});
+                }
+                else if (message.text.slice(0, 5) == "reply") {
+                    if (doc) bot.sendMessage(doc.chat.id, message.text.slice(5), {
+                        reply_to_message_id: doc.message_id
+                    });
+                }
             });
+
         }
     }
     else {
@@ -98,7 +104,7 @@ bot.addCmd('mh', function(message, args) {
             cbq.answer();
         });
     }
-}, "訊息歷史","reply要查看的訊息後 打 /mh");
+}, "訊息歷史", "reply要查看的訊息後 打 /mh");
 
 bot.addCmd('wmr', (message, args) => {
     if (message.reply_to_message) DB.findRepliedIdByMessageId(message.reply_to_message.message_id, function(err, doc) {
@@ -119,17 +125,17 @@ bot.addCmd('wmr', (message, args) => {
             });
         }
     });
-}, "查看該訊息回復了哪則訊息","reply要查看的訊息後 打 /wmr");
+}, "查看該訊息回復了哪則訊息", "reply要查看的訊息後 打 /wmr");
 
 bot.addCmd('search', (message, args) => {
     if (args[1]) {
         var pattern = args[0],
-            chatId  = message.chat.id;
+            chatId = message.chat.id;
 
         if (args[1] == '-g') {
             args.splice(0, 2);
             pattern = args.join(' ');
-            chatId  = null;
+            chatId = null;
         }
 
         if (message.chat.type == 'private') chatId = null;
@@ -147,7 +153,7 @@ bot.addCmd('search', (message, args) => {
             cbq.answer();
         });
     }
-}, "搜尋訊息","/search (regex)");
+}, "搜尋訊息", "/search (regex)");
 
 function listView(message, args, iterator, processToText, whenClickNumber) {
 
