@@ -15,6 +15,7 @@ function TGBOT(options) {
     this.token = options.token;
     this.pollingTimeout = options.pollingTimeout || 40;
     this.help = options.help;
+    this.cmdRequireUsernameInGroup = options.cmdRequireUsernameInGroup;
 
     this.cmdList = {};
     this.onCBQList = [];
@@ -23,6 +24,8 @@ function TGBOT(options) {
     this.lastOffset = null;
     this.username = null;
     this.cmdRegex = null;
+    this.regexUsernameRequired = null;
+    this.regexUsernameOptional = null;
 }
 util.inherits(TGBOT, EventEmitter);
 /**
@@ -35,11 +38,17 @@ TGBOT.prototype.start = function() {
     this.getMe(function(error, result) {
         if (error) console.log(error);
         self.username = result.username;
-        self.cmdRegex = new RegExp("^\/(\\w+)(?:@" + self.username + ")?(?: (.*))?$", "i");
+        self.regexUsernameRequired = new RegExp("^\/(\\w+)(?:@" + self.username + ")(?: ((.|\\n)*))?$", "i");
+        self.regexUsernameOptional = new RegExp("^\/(\\w+)(?:@" + self.username + ")?(?: ((.|\\n)*))?$", "i");
+        if (self.cmdRequireUsernameInGroup) {
+            self.cmdRegex = self.regexUsernameRequired;
+        } else {
+            self.cmdRegex = self.regexUsernameOptional;
+        }
     });
     if (self.help) {
         self.addCmd('help', function(message, args) {
-            if (args[1]&&self.cmdList[args[1]]) {
+            if (args[1] && self.cmdList[args[1]]) {
                 message.replyMsg(self.cmdList[args[1]].helpMsg || (self.cmdList[args[1]].desc || "Command " + args[1] + " not found or nothing to display :("));
             }
             else {
@@ -119,7 +128,7 @@ TGBOT.prototype.addMethodToMessage = function(message, oldDatas) {
         return self.sendMessage(message.chat.id, text, datas, cb);
     };
 
-    if (message.from.username == self.username) {
+    if (!message.from || message.from.username == self.username) {
         message.editText = function(text, datas, cb) {
             datas = typeof datas === "object" ? datas : {};
             datas.chat_id = message.chat.id;
@@ -140,6 +149,12 @@ TGBOT.prototype.addMethodToMessage = function(message, oldDatas) {
             datas.message_id = message.message_id;
             return self.editMessageReplyMarkup(replyMarkup, datas, cb);
         };
+        message.delete = function(datas, cb) {
+            datas = typeof datas === "object" ? datas : {};
+            datas.chat_id = message.chat.id;
+            datas.message_id = message.message_id;
+            return self.deleteMessage(datas, cb);
+        };
     }
     else {
         message.sendToUser = function(text, datas, cb) {
@@ -155,6 +170,14 @@ TGBOT.prototype.answerCallbackQuery = function(callback_query_id, text, show_ale
     datas.text = text || "";
     datas.show_alert = show_alert || false;
     return this._invoke('answerCallbackQuery', datas, cb);
+};
+
+TGBOT.prototype.answerInlineQuery = function(inline_query_id, results, datas, cb) {
+    datas = datas || {};
+    results = results || [];
+    datas.inline_query_id = inline_query_id;
+    datas.results = JSON.stringify(results);
+    return this._invoke('answerInlineQuery', datas, cb);
 };
 
 TGBOT.prototype._invoke = function(apiName, params, cb, timeout, multiPart) {
@@ -179,6 +202,10 @@ TGBOT.prototype._invoke = function(apiName, params, cb, timeout, multiPart) {
     //console.log(requestData);
     request.post(requestData, function(err, response, body) {
         // console.log(response);
+        if (response.statusCode === 401) {
+            console.log('[ERROR] Wrong token');
+            process.exit(1);
+        }
         if (err || response.statusCode !== 200) {
             return cb(err || new Error(body));
         }
@@ -270,7 +297,7 @@ TGBOT.prototype.sendMessage = function sendMessage(chat_id, text, datas, cb) {
 TGBOT.prototype.replyMessage = function replyMessage(chat_id, reply_to_message_id, text, datas, cb) {
     datas = typeof datas === "object" ? datas : {};
     datas.reply_to_message_id = reply_to_message_id;
-    this.sendMessage(chat_id, text, datas, cb)
+    return this.sendMessage(chat_id, text, datas, cb);
 };
 /**
  * 轉傳訊息
@@ -309,9 +336,13 @@ TGBOT.prototype.addCmd = function(cmd, script, desc, helpMsg) {
 
 TGBOT.prototype.execCmd = function(message) {
     var self = this;
-    var result = message.text.match(this.cmdRegex);
-    var cmd;
+    var result, cmd;
     var args = [];
+    if (message.chat.type == "private") {
+        result = message.text.match(this.regexUsernameOptional);
+    } else {
+        result = message.text.match(this.cmdRegex);
+    }
     if (result) {
         cmd = result[1];
         args[0] = result[2];
@@ -349,6 +380,14 @@ TGBOT.prototype.editMessageReplyMarkup = function(replyMarkup, datas, cb) {
     datas.reply_markup = replyMarkup;
     return this._invoke('editMessageReplyMarkup', datas, cb);
 };
+
+TGBOT.prototype.deleteMessage = function(datas, cb) {
+    datas = typeof datas === "object" ? datas : {};
+    if (!(datas.chat_id && datas.message_id)) {
+        return false;
+    }
+    return this._invoke('deleteMessage', datas, cb);
+};
 /**
  * 產生Help
  * @method genHelp
@@ -363,6 +402,10 @@ TGBOT.prototype.genHelp = function(format) {
         help += format(self.cmdList[command]);
     }
     return help;
+};
+
+TGBOT.prototype.getChatAdministrators = function(chat_id, cb){
+    return this._invoke('getChatAdministrators', {chat_id:chat_id}, cb);
 };
 
 module.exports = TGBOT;
