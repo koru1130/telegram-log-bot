@@ -14,7 +14,7 @@ bot.on('message', function(message) {
             DB.findOriginalIdByFwdMsgId(message.reply_to_message.message_id, function(err, doc) {
                 if (err) console.log(err);
                 if (message.text == "info") {
-                    message.replyMsg("```\n"+JSON.stringify(doc, null, 2)+"```",{parse_mode:"Markdown"});
+                    message.replyMsg("```\n" + JSON.stringify(doc, null, 2) + "```", { parse_mode: "Markdown" });
                 }
                 else if (message.text.slice(0, 5) == "reply") {
                     if (doc) bot.sendMessage(doc.chat.id, message.text.slice(5), {
@@ -79,9 +79,27 @@ bot.addCmd('wmmm', function(message, args) {
     }, function(i, messages, cbq) {
         if (messages[i]) {
             bot.replyMessage(messages[i].chat.id, messages[i].message_id, (cbq.from.username ? "@" + cbq.from.username : cbq.from.first_name) + " ^", {
-                disable_notification: true
+                disable_notification: true,
+                reply_markup: JSON.stringify({
+                    inline_keyboard: [
+                        [{
+                            text: "已讀",
+                            callback_data: "read"
+                        }]
+                    ]
+                })
+            }).onCallbackQuery(cbQuery => {
+                if (cbQuery.from.id != message.from.id) {
+                    return cbQuery.answer("僅供被提醒者使用");
+                }
+                if (cbQuery.data == "read") {
+                    cbQuery.answer("提醒訊息已刪除");
+                    cbQuery.message.delete();
+                }
             });
             cbq.answer("請至 " + messages[i].chat.title + " 查看");
+        } else {
+            cbq.answer("無此訊息");
         }
     });
 }, "查看有哪些訊息提到我");
@@ -100,8 +118,12 @@ bot.addCmd('mh', function(message, args) {
             text = text || "Nothing";
             return text;
         }, function(i, messages, cbq) {
-            if (messages[i]) bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
-            cbq.answer();
+            if (messages[i]) {
+                bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
+                cbq.answer();
+            } else {
+                cbq.answer("無此訊息");
+            }
         });
     }
 }, "訊息歷史", "reply要查看的訊息後 打 /mh");
@@ -120,8 +142,12 @@ bot.addCmd('wmr', (message, args) => {
                 text = text || "Nothing";
                 return text;
             }, function(i, messages, cbq) {
-                if (messages[i]) bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
-                cbq.answer();
+                if (messages[i]) {
+                    bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
+                    cbq.answer();
+                } else {
+                    cbq.answer("無此訊息");
+                }
             });
         }
     });
@@ -149,8 +175,12 @@ bot.addCmd('search', (message, args) => {
             text = text || "Nothing";
             return text;
         }, function(i, messages, cbq) {
-            if (messages[i]) bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
-            cbq.answer();
+            if (messages[i]) {
+                bot.forwardMessage(cbq.from.id, config.consoleGroup, messages[i].fwd_id);
+                cbq.answer();
+            } else {
+                cbq.answer("無此訊息");
+            }
         });
     }
 }, "搜尋訊息", "/search (regex)");
